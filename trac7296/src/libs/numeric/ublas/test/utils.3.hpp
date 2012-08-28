@@ -1,43 +1,7 @@
 /**
- * \file util.hpp
+ *  \file util.hpp
  *
- * \brief Utility macros/functions for testing and debugging purpose.
- *
- * Basic usage:
- * <pre>
- * BOOST_UBLAS_TEST_DEF( test_case_1 )
- * {
- *   // do your test stuff
- * }
- *
- * BOOST_UBLAS_TEST_DEF( test_case_2 )
- * {
- *   // do your test stuff
- * }
- *
- * // ...
- *
- * BOOST_UBLAS_TEST_DEF( test_case_n )
- * {
- *   // do your test stuff
- * }
- *
- * int main()
- * {
- *   BOOST_UBLAS_TEST_SUITE( "My Test Suite" ); // optional
- *
- *   BOOST_UBLAS_TEST_BEGIN();
- *     BOOST_UBLAS_TEST_DO( test_case_1 );
- *     BOOST_UBLAS_TEST_DO( test_case_2 );
- *     // ...
- *     BOOST_UBLAS_TEST_DO( test_case_n );
- *   BOOST_UBLAS_TEST_END();
- * }
- * </pre>
- * Inside each <em>test_case_<code>k</code></em> you can use the various
- * \c BOOST_UBLAS_TEST_CHECK* macros.
- *
- * <hr/>
+ *  \brief Utility macros/functions for testing and debugging purpose.
  *
  *  Copyright (c) 2009-2012, Marco Guazzone
  *
@@ -52,10 +16,7 @@
 #define BOOST_NUMERIC_UBLAS_TEST_UTILS_HPP
 
 
-#include <boost/numeric/ublas/detail/config.hpp>
-#include <boost/numeric/ublas/traits.hpp>
 #include <cmath>
-#include <complex>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
@@ -63,81 +24,16 @@
 
 namespace boost { namespace numeric { namespace ublas { namespace test { namespace detail { namespace /*<unnamed>*/ {
 
-/// Check if the given complex number is a NaN.
-template <typename T>
-BOOST_UBLAS_INLINE
-bool isnan(::std::complex<T> const& z)
-{
-	// According to IEEE, NaN is different even by itself
-	return (z != z) || ::std::isnan(z.real()) || ::std::isnan(z.imag());
-}
-
-/// Check if two (real) numbers are close each other (wrt a given tolerance).
 template <typename T1, typename T2, typename T3>
-BOOST_UBLAS_INLINE
+inline
 bool close_to(T1 x, T2 y, T3 tol)
 {
-	typedef typename promote_traits<typename promote_traits<T1,T2>::promote_type,
-									T3>::promote_type real_type;
-
     if (::std::isnan(x) || ::std::isnan(y))
     {
-        // According to IEEE, NaN is different even by itself
+        // According to IEEE, NaN are different event by itself
         return false;
     }
-    return ::std::abs(x-y) <= (::std::max(static_cast<real_type>(::std::abs(x)), static_cast<real_type>(::std::abs(y)))*tol);
-}
-
-/// Check if two complex numbers are close each other (wrt a given tolerance).
-template <typename T1, typename T2, typename T3>
-BOOST_UBLAS_INLINE
-bool close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 tol)
-{
-	typedef typename promote_traits<typename promote_traits<T1,T2>::promote_type,
-									T3>::promote_type real_type;
-
-    if (isnan(x) || isnan(y))
-    {
-        // According to IEEE, NaN is different even by itself
-        return false;
-    }
-	::std::complex<real_type> xx(x);
-	::std::complex<real_type> yy(y);
-    return ::std::abs(xx-yy) <= (::std::max(::std::abs(xx), ::std::abs(yy))*tol);
-}
-
-/// Check if two (real) numbers are close each other (wrt a given tolerance).
-template <typename T1, typename T2, typename T3>
-BOOST_UBLAS_INLINE
-bool rel_close_to(T1 x, T2 y, T3 tol)
-{
-	typedef typename promote_traits<typename promote_traits<T1,T2>::promote_type,
-									T3>::promote_type real_type;
-
-    if (::std::isnan(x) || ::std::isnan(y))
-    {
-        // According to IEEE, NaN is different even by itself
-        return false;
-    }
-    return ::std::abs(x-y)/::std::abs(y) <= tol;
-}
-
-/// Check if two complex numbers are close each other (wrt a given tolerance).
-template <typename T1, typename T2, typename T3>
-BOOST_UBLAS_INLINE
-bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 tol)
-{
-	typedef typename promote_traits<typename promote_traits<T1,T2>::promote_type,
-									T3>::promote_type real_type;
-
-    if (isnan(x) || isnan(y))
-    {
-        // According to IEEE, NaN is different even by itself
-        return false;
-    }
-	::std::complex<real_type> xx(x);
-	::std::complex<real_type> yy(y);
-    return ::std::abs(xx-yy)/::std::abs(yy) <= tol;
+    return ::std::abs(x-y) <= (::std::max(::std::abs(x), ::std::abs(y))*tol);
 }
 
 }}}}}} // Namespace boost::numeric::ublas::test::detail::<unnamed>
@@ -164,7 +60,7 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 
 
 /// Define the name of the entire test suite.
-#define BOOST_UBLAS_TEST_SUITE(m) ::std::cerr << "--- Test Suite: " << m << " ---" << ::std::endl;
+#define DCS_TEST_SUITE(m) ::std::cerr << "--- Test Suite: " << m << " ---" << ::std::endl;
 
 
 /// Define the beginning of a test suite.
@@ -176,7 +72,7 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 
 
 /// Define a test case \a x inside the current test suite.
-#define BOOST_UBLAS_TEST_DEF(x) static void BOOST_UBLAS_TEST_EXPAND_(x)(unsigned int& test_fails__)
+#define BOOST_UBLAS_TEST_DEF(x) void BOOST_UBLAS_TEST_EXPAND_(x)(unsigned int& test_fails__)
 
 
 /// Call the test case \a x.
@@ -211,10 +107,6 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 								/* [/BOOST_UBLAS_TEST_END] */
 
 
-/// Output the message \a m.
-#define BOOST_UBLAS_TEST_TRACE(m) ::std::cerr << "[Info>> " << BOOST_UBLAS_TEST_EXPAND_(m) << ::std::endl
-
-
 /// Check the truth of assertion \a x.
 #define BOOST_UBLAS_TEST_CHECK(x)	/* [BOOST_UBLAS_TEST_CHECK] */ \
 									if (!(x)) \
@@ -227,7 +119,7 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 
 /// Check for the equality of \a x against \a y.
 #define BOOST_UBLAS_TEST_CHECK_EQ(x,y)	/* [BOOST_UBLAS_TEST_CHECK_EQUAL] */ \
-										if (!(BOOST_UBLAS_TEST_EXPAND_(x) == BOOST_UBLAS_TEST_EXPAND_(y))) \
+										if (!(BOOST_UBLAS_TEST_PARAM_EXPAND_(x) == BOOST_UBLAS_TEST_PARAM_EXPAND_(y))) \
 										{ \
 											BOOST_UBLAS_TEST_ERROR( "Failed assertion: (" << BOOST_UBLAS_TEST_STRINGIFY_(x) << " == " << BOOST_UBLAS_TEST_STRINGIFY_(y) << ")" ); \
 											++test_fails__; \
@@ -254,17 +146,13 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 
 
 /// Check that \a x is close to \a y with respect to a given relative precision.
-#define BOOST_UBLAS_TEST_CHECK_REL_CLOSE(x,y,e)	/* [BOOST_UBLAS_TEST_CHECK_REL_PRECISION] */ \
-												if (!::boost::numeric::ublas::test::detail::rel_close_to(BOOST_UBLAS_TEST_EXPAND_(x), BOOST_UBLAS_TEST_EXPAND_(y), BOOST_UBLAS_TEST_EXPAND_(e))) \
-												{ \
-													BOOST_UBLAS_TEST_ERROR( "Failed assertion: abs((" << BOOST_UBLAS_TEST_STRINGIFY_(x) << "-" << BOOST_UBLAS_TEST_STRINGIFY_(y) << ")/" << BOOST_UBLAS_TEST_STRINGIFY_(y) << ") <= " << BOOST_UBLAS_TEST_STRINGIFY_(e)  << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x) << " == " << BOOST_UBLAS_TEST_EXPAND_(x) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y) << " == " << BOOST_UBLAS_TEST_EXPAND_(y) << " and " << BOOST_UBLAS_TEST_STRINGIFY_(e) << " == " << BOOST_UBLAS_TEST_EXPAND_(e) << "]" ); \
-													++test_fails__; \
-												} \
-												/* [/BOOST_UBLAS_TEST_CHECK_REL_PRECISION] */
-
-
-/// Alias for macro \c BOOST_UBLAS_TEST_CHECK_REL_CLOSE (for backward compatibility),
-#define BOOST_UBLAS_TEST_CHECK_REL_PRECISION(x,y,e) BOOST_UBLAS_TEST_CHECK_REL_CLOSE(x,y,e)
+#define BOOST_UBLAS_TEST_CHECK_REL_PRECISION(x,y,e)	/* [BOOST_UBLAS_TEST_CHECK_REL_PRECISION] */ \
+													if (!::boost::numeric::ublas::test::detail::close_to(BOOST_UBLAS_TEST_EXPAND_(x)/BOOST_UBLAS_TEST_EXPAND_(y), 1.0, BOOST_UBLAS_TEST_EXPAND_(e))) \
+													{ \
+														BOOST_UBLAS_TEST_ERROR( "Failed assertion: abs((" << BOOST_UBLAS_TEST_STRINGIFY_(x) << "-" << BOOST_UBLAS_TEST_STRINGIFY_(y) << ")/" << BOOST_UBLAS_TEST_STRINGIFY_(y) << ") <= " << BOOST_UBLAS_TEST_STRINGIFY_(e)  << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x) << " == " << BOOST_UBLAS_TEST_EXPAND_(x) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y) << " == " << BOOST_UBLAS_TEST_EXPAND_(y) << " and " << BOOST_UBLAS_TEST_STRINGIFY_(e) << " == " << BOOST_UBLAS_TEST_EXPAND_(e) << "]" ); \
+														++test_fails__; \
+													} \
+													/* [/BOOST_UBLAS_TEST_CHECK_REL_PRECISION] */
 
 
 /// Check that elements of \a x and \a y are equal.
