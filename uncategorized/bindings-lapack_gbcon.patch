@@ -1,0 +1,31 @@
+diff -Naur old/boost/numeric/bindings/lapack/computational/gbcon.hpp new/boost/numeric/bindings/lapack/computational/gbcon.hpp
+--- old/boost/numeric/bindings/lapack/computational/gbcon.hpp	2010-07-27 10:26:49.000000000 +0200
++++ new/boost/numeric/bindings/lapack/computational/gbcon.hpp	2010-07-27 10:56:15.000000000 +0200
+@@ -153,11 +153,11 @@
+         BOOST_ASSERT( bindings::size_minor(ab) == 1 ||
+                 bindings::stride_minor(ab) == 1 );
+         BOOST_ASSERT( bindings::stride_major(ab) >=
+-                2*bindings::bandwidth_lower(ab)+bindings::bandwidth_upper(ab)+
++                2*bindings::bandwidth_lower(ab)+(bindings::bandwidth_upper(ab)-bindings::bandwidth_lower(ab))+
+                 1 );
+         BOOST_ASSERT( norm == '1' || norm == 'O' || norm == 'I' );
+         return detail::gbcon( norm, bindings::size_column(ab),
+-                bindings::bandwidth_lower(ab), bindings::bandwidth_upper(ab),
++                bindings::bandwidth_lower(ab), bindings::bandwidth_upper(ab)-bindings::bandwidth_lower(ab),
+                 bindings::begin_value(ab), bindings::stride_major(ab),
+                 bindings::begin_value(ipiv), anorm, rcond,
+                 bindings::begin_value(work.select(real_type())),
+@@ -248,11 +248,11 @@
+         BOOST_ASSERT( bindings::size_minor(ab) == 1 ||
+                 bindings::stride_minor(ab) == 1 );
+         BOOST_ASSERT( bindings::stride_major(ab) >=
+-                2*bindings::bandwidth_lower(ab)+bindings::bandwidth_upper(ab)+
++                2*bindings::bandwidth_lower(ab)+(bindings::bandwidth_upper(ab)-bindings::bandwidth_lower(ab))+
+                 1 );
+         BOOST_ASSERT( norm == '1' || norm == 'O' || norm == 'I' );
+         return detail::gbcon( norm, bindings::size_column(ab),
+-                bindings::bandwidth_lower(ab), bindings::bandwidth_upper(ab),
++                bindings::bandwidth_lower(ab), bindings::bandwidth_upper(ab)-bindings::bandwidth_lower(ab),
+                 bindings::begin_value(ab), bindings::stride_major(ab),
+                 bindings::begin_value(ipiv), anorm, rcond,
+                 bindings::begin_value(work.select(value_type())),

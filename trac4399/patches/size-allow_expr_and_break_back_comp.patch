@@ -1,0 +1,666 @@
+--- boost-dev.orig/boost/numeric/ublas/operation/size.hpp	2010-07-02 16:01:55.000000000 +0200
++++ boost-dev.new/boost/numeric/ublas/operation/size.hpp	2010-07-02 16:14:48.000000000 +0200
+@@ -5,7 +5,7 @@
+  *
+  * \brief The \c size operation.
+  *
+- * Copyright (c) 2009, Marco Guazzone
++ * Copyright (c) 2009-2010, Marco Guazzone
+  *
+  * Distributed under the Boost Software License, Version 1.0. (See
+  * accompanying file LICENSE_1_0.txt or copy at
+@@ -22,251 +22,316 @@
+ #include <boost/numeric/ublas/expression_types.hpp>
+ #include <boost/numeric/ublas/fwd.hpp>
+ #include <boost/numeric/ublas/tags.hpp>
++#include <boost/numeric/ublas/traits.hpp>
+ #include <cstddef>
+ 
+ 
+ namespace boost { namespace numeric { namespace ublas {
+ 
++    //@{ Declarations
++
++    /**
++     * \brief Return the number of columns.
++     * \tparam VectorExprT A type which models the matrix expression concept.
++     * \param m A matrix expression.
++     * \return The number of columns.
++     */
++    template <typename VectorExprT>
++    typename vector_traits<VectorExprT>::size_type size(vector_expression<VectorExprT> const& ve);
++
++    /**
++     * \brief Return the size of the given dimension for the given expression.
++     * \tparam Dim The dimension number (starting from 1).
++     * \tparam VectorExprT An expression type.
++     * \param e An expression.
++     * \return The number of columns.
++     * \return The size associated to the dimension \a Dim.
++     */
++    template <std::size_t Dim, typename VectorExprT>
++    typename vector_traits<VectorExprT>::size_type size(vector_expression<VectorExprT> const& ve);
++
++    /**
++     * \brief Return the size of the given dimension for the given expression.
++     * \tparam Dim The dimension number (starting from 1).
++     * \tparam MatrixExprT An expression type.
++     * \param e An expression.
++     * \return The number of columns.
++     * \return The size associated to the dimension \a Dim.
++     */
++    template <std::size_t Dim, typename MatrixExprT>
++    typename matrix_traits<MatrixExprT>::size_type size(matrix_expression<MatrixExprT> const& me);
++
++    /**
++     * \brief Return the size of the given dimension tag for the given expression.
++     * \tparam TagT The dimension tag type (e.g., tag::major).
++     * \tparam MatrixExprT An expression type.
++     * \param e An expression.
++     * \return The size associated to the dimension tag \a TagT.
++     */
++    template <typename TagT, typename MatrixExprT>
++    typename matrix_traits<MatrixExprT>::size_type size_by_tag(matrix_expression<MatrixExprT> const& me);
++    //typename matrix_traits<MatrixExprT>::size_type size(matrix_expression<MatrixExprT> const& me); //FIXME: don't work
++
++    //@} Declarations
++
++
++    //@{ Definitions
++
+     namespace detail {
+ 
++    /**
++     * \brief Auxiliary class for computing the size of the given dimension for
++     *  a container of the given category.
++     * \tparam Dim The dimension number (starting from 1).
++     * \tparam CategoryT The category type (e.g., vector_tag).
++     */
++    template <std::size_t Dim, typename CategoryT>
++    struct size_by_dim_impl;
++
++
++    /**
++     * \brief Auxiliary class for computing the size of the given dimension for
++     *  a container of the given category and with the given orientation.
++     * \tparam Dim The dimension number (starting from 1).
++     * \tparam CategoryT The category type (e.g., vector_tag).
++     * \tparam OrientationT The orientation category type (e.g., row_major_tag).
++     */
++    template <typename TagT, typename CategoryT, typename OrientationT>
++    struct size_by_tag_impl;
++
++
++    /// \brief Specialization of \c size_by_dim_impl for computing the size of a
++    ///  vector
++    template <>
++    struct size_by_dim_impl<1, vector_tag>
++    {
+         /**
+-         * \brief Auxiliary class for computing the size of the given dimension for
+-         *  a container of the given category..
+-         * \tparam Dim The dimension number (starting from 1).
+-         * \tparam CategoryT The category type (e.g., vector_tag).
++         * \brief Compute the size of the given vector.
++         * \tparam ExprT A vector expression type.
++         * \pre ExprT must be a model of VectorExpression.
+          */
+-        template <size_t Dim, typename CategoryT>
+-        struct size_by_dim_impl;
++        template <typename ExprT>
++        BOOST_UBLAS_INLINE
++        static typename vector_traits<ExprT>::size_type apply(vector_expression<ExprT> const& ve)
++        {
++            return ve().size();
++        }
++    };
+ 
+ 
+-        /// \brief Specialization of \c size_by_dim_impl for computing the size of a
+-        ///  vector
+-        template <>
+-        struct size_by_dim_impl<1, vector_tag>
+-        {
+-            /**
+-             * \brief Compute the size of the given vector.
+-             * \tparam ExprT A vector expression type.
+-             * \pre ExprT must be a model of VectorExpression.
+-             */
+-            template <typename ExprT>
+-            BOOST_UBLAS_INLINE
+-            static typename ExprT::size_type apply(ExprT const& e)
+-            {
+-                return e.size();
+-            }
+-        };
+-
+-
+-        /// \brief Specialization of \c size_by_dim_impl for computing the number of
+-        ///  rows of a matrix
+-        template <>
+-        struct size_by_dim_impl<1, matrix_tag>
+-        {
+-            /**
+-             * \brief Compute the number of rows of the given matrix.
+-             * \tparam ExprT A matrix expression type.
+-             * \pre ExprT must be a model of MatrixExpression.
+-             */
+-            template <typename ExprT>
+-            BOOST_UBLAS_INLINE
+-            static typename ExprT::size_type apply(ExprT const& e)
+-            {
+-                return e.size1();
+-            }
+-        };
+-
+-
+-        /// \brief Specialization of \c size_by_dim_impl for computing the number of
+-        ///  columns of a matrix
+-        template <>
+-        struct size_by_dim_impl<2, matrix_tag>
++    /// \brief Specialization of \c size_by_dim_impl for computing the number of
++    ///  rows of a matrix
++    template <>
++    struct size_by_dim_impl<1, matrix_tag>
++    {
++        /**
++         * \brief Compute the number of rows of the given matrix.
++         * \tparam ExprT A matrix expression type.
++         * \pre ExprT must be a model of MatrixExpression.
++         */
++        template <typename ExprT>
++        BOOST_UBLAS_INLINE
++        static typename matrix_traits<ExprT>::size_type apply(matrix_expression<ExprT> const& me)
+         {
+-            /**
+-             * \brief Compute the number of columns of the given matrix.
+-             * \tparam ExprT A matrix expression type.
+-             * \pre ExprT must be a model of MatrixExpression.
+-             */
+-            template <typename ExprT>
+-            BOOST_UBLAS_INLINE
+-            static typename ExprT::size_type apply(ExprT const& e)
+-            {
+-                return e.size2();
+-            }
+-        };
++            return me().size1();
++        }
++    };
+ 
+ 
++    /// \brief Specialization of \c size_by_dim_impl for computing the number of
++    ///  columns of a matrix
++    template <>
++    struct size_by_dim_impl<2, matrix_tag>
++    {
+         /**
+-         * \brief Auxiliary class for computing the size of the given dimension for
+-         *  a container of the given category and with the given orientation..
+-         * \tparam Dim The dimension number (starting from 1).
+-         * \tparam CategoryT The category type (e.g., vector_tag).
+-         * \tparam OrientationT The orientation category type (e.g., row_major_tag).
++         * \brief Compute the number of columns of the given matrix.
++         * \tparam ExprT A matrix expression type.
++         * \pre ExprT must be a model of MatrixExpression.
+          */
+-        template <typename TagT, typename CategoryT, typename OrientationT>
+-        struct size_by_tag_impl;
++        template <typename ExprT>
++        BOOST_UBLAS_INLINE
++        static typename matrix_traits<ExprT>::size_type apply(matrix_expression<ExprT> const& me)
++        {
++            return me().size2();
++        }
++    };
+ 
+ 
+-        /// \brief Specialization of \c size_by_tag_impl for computing the size of the
+-        ///  major dimension of a row-major oriented matrix.
+-        template <>
+-        struct size_by_tag_impl<tag::major, matrix_tag, row_major_tag>
++    /// \brief Specialization of \c size_by_tag_impl for computing the size of the
++    ///  major dimension of a row-major oriented matrix.
++    template <>
++    struct size_by_tag_impl<tag::major, matrix_tag, row_major_tag>
++    {
++        /**
++         * \brief Compute the number of rows of the given matrix.
++         * \tparam ExprT A matrix expression type.
++         * \pre ExprT must be a model of MatrixExpression.
++         */
++        template <typename ExprT>
++        BOOST_UBLAS_INLINE
++        static typename matrix_traits<ExprT>::size_type apply(matrix_expression<ExprT> const& me)
+         {
+-            /**
+-             * \brief Compute the number of rows of the given matrix.
+-             * \tparam ExprT A matrix expression type.
+-             * \pre ExprT must be a model of MatrixExpression.
+-             */
+-            template <typename ExprT>
+-            BOOST_UBLAS_INLINE
+-            static typename ExprT::size_type apply(ExprT const& e)
+-            {
+-                return e.size1();
+-            }
+-        };
+-
+-
+-        /// \brief Specialization of \c size_by_tag_impl for computing the size of the
+-        ///  minor dimension of a row-major oriented matrix.
+-        template <>
+-        struct size_by_tag_impl<tag::minor, matrix_tag, row_major_tag>
++            return me().size1();
++        }
++    };
++
++
++    /// \brief Specialization of \c size_by_tag_impl for computing the size of the
++    ///  minor dimension of a row-major oriented matrix.
++    template <>
++    struct size_by_tag_impl<tag::minor, matrix_tag, row_major_tag>
++    {
++        /**
++         * \brief Compute the number of columns of the given matrix.
++         * \tparam ExprT A matrix expression type.
++         * \pre ExprT must be a model of MatrixExpression.
++         */
++        template <typename ExprT>
++        BOOST_UBLAS_INLINE
++        static typename matrix_traits<ExprT>::size_type apply(matrix_expression<ExprT> const& me)
+         {
+-            /**
+-             * \brief Compute the number of columns of the given matrix.
+-             * \tparam ExprT A matrix expression type.
+-             * \pre ExprT must be a model of MatrixExpression.
+-             */
+-            template <typename ExprT>
+-            BOOST_UBLAS_INLINE
+-            static typename ExprT::size_type apply(ExprT const& e)
+-            {
+-                return e.size2();
+-            }
+-        };
+-
+-
+-        /// \brief Specialization of \c size_by_tag_impl for computing the size of the
+-        ///  leading dimension of a row-major oriented matrix.
+-        template <>
+-        struct size_by_tag_impl<tag::leading, matrix_tag, row_major_tag>
++            return me().size2();
++        }
++    };
++
++
++    /// \brief Specialization of \c size_by_tag_impl for computing the size of the
++    ///  leading dimension of a row-major oriented matrix.
++    template <>
++    struct size_by_tag_impl<tag::leading, matrix_tag, row_major_tag>
++    {
++        /**
++         * \brief Compute the number of columns of the given matrix.
++         * \tparam ExprT A matrix expression type.
++         * \pre ExprT must be a model of MatrixExpression.
++         */
++        template <typename ExprT>
++        BOOST_UBLAS_INLINE
++        static typename matrix_traits<ExprT>::size_type apply(matrix_expression<ExprT> const& me)
+         {
+-            /**
+-             * \brief Compute the number of columns of the given matrix.
+-             * \tparam ExprT A matrix expression type.
+-             * \pre ExprT must be a model of MatrixExpression.
+-             */
+-            template <typename ExprT>
+-            BOOST_UBLAS_INLINE
+-            static typename ExprT::size_type apply(ExprT const& e)
+-            {
+-                return e.size2();
+-            }
+-        };
+-
+-
+-        /// \brief Specialization of \c size_by_tag_impl for computing the size of the
+-        ///  major dimension of a column-major oriented matrix.
+-        template <>
+-        struct size_by_tag_impl<tag::major, matrix_tag, column_major_tag>
++            return me().size2();
++        }
++    };
++
++
++    /// \brief Specialization of \c size_by_tag_impl for computing the size of the
++    ///  major dimension of a column-major oriented matrix.
++    template <>
++    struct size_by_tag_impl<tag::major, matrix_tag, column_major_tag>
++    {
++        /**
++         * \brief Compute the number of columns of the given matrix.
++         * \tparam ExprT A matrix expression type.
++         * \pre ExprT must be a model of MatrixExpression.
++         */
++        template <typename ExprT>
++        BOOST_UBLAS_INLINE
++        static typename matrix_traits<ExprT>::size_type apply(matrix_expression<ExprT> const& me)
+         {
+-            /**
+-             * \brief Compute the number of columns of the given matrix.
+-             * \tparam ExprT A matrix expression type.
+-             * \pre ExprT must be a model of MatrixExpression.
+-             */
+-            template <typename ExprT>
+-            BOOST_UBLAS_INLINE
+-            static typename ExprT::size_type apply(ExprT const& e)
+-            {
+-                return e.size2();
+-            }
+-        };
+-
+-
+-        /// \brief Specialization of \c size_by_tag_impl for computing the size of the
+-        ///  minor dimension of a column-major oriented matrix.
+-        template <>
+-        struct size_by_tag_impl<tag::minor, matrix_tag, column_major_tag>
++            return me().size2();
++        }
++    };
++
++
++    /// \brief Specialization of \c size_by_tag_impl for computing the size of the
++    ///  minor dimension of a column-major oriented matrix.
++    template <>
++    struct size_by_tag_impl<tag::minor, matrix_tag, column_major_tag>
++    {
++        /**
++         * \brief Compute the number of rows of the given matrix.
++         * \tparam ExprT A matrix expression type.
++         * \pre ExprT must be a model of MatrixExpression.
++         */
++        template <typename ExprT>
++        BOOST_UBLAS_INLINE
++        static typename matrix_traits<ExprT>::size_type apply(matrix_expression<ExprT> const& me)
+         {
+-            /**
+-             * \brief Compute the number of rows of the given matrix.
+-             * \tparam ExprT A matrix expression type.
+-             * \pre ExprT must be a model of MatrixExpression.
+-             */
+-            template <typename ExprT>
+-            BOOST_UBLAS_INLINE
+-            static typename ExprT::size_type apply(ExprT const& e)
+-            {
+-                return e.size1();
+-            }
+-        };
+-
+-
+-        /// \brief Specialization of \c size_by_tag_impl for computing the size of the
+-        ///  leading dimension of a column-major oriented matrix.
+-        template <>
+-        struct size_by_tag_impl<tag::leading, matrix_tag, column_major_tag>
++            return me().size1();
++        }
++    };
++
++
++    /// \brief Specialization of \c size_by_tag_impl for computing the size of the
++    ///  leading dimension of a column-major oriented matrix.
++    template <>
++    struct size_by_tag_impl<tag::leading, matrix_tag, column_major_tag>
++    {
++        /**
++         * \brief Compute the number of rows of the given matrix.
++         * \tparam ExprT A matrix expression type.
++         * \pre ExprT must be a model of MatrixExpression.
++         */
++        template <typename ExprT>
++        BOOST_UBLAS_INLINE
++        static typename matrix_traits<ExprT>::size_type apply(matrix_expression<ExprT> const& me)
+         {
+-            /**
+-             * \brief Compute the number of rows of the given matrix.
+-             * \tparam ExprT A matrix expression type.
+-             * \pre ExprT must be a model of MatrixExpression.
+-             */
+-            template <typename ExprT>
+-            BOOST_UBLAS_INLINE
+-            static typename ExprT::size_type apply(ExprT const& e)
+-            {
+-                return e.size1();
+-            }
+-        };
++            return me().size1();
++        }
++    };
++
++
++    /// \brief Specialization of \c size_by_tag_impl for computing the size of the
++    ///  given dimension of a unknown oriented expression.
++    template <typename TagT, typename CategoryT>
++    struct size_by_tag_impl<TagT, CategoryT, unknown_orientation_tag>: size_by_tag_impl<TagT, CategoryT, row_major_tag>
++    {
++        // Empty
++    };
+ 
+     } // Namespace detail
+ 
+ 
+-    /**
+-     * \brief Return the number of columns.
+-     * \tparam MatrixExprT A type which models the matrix expression concept.
+-     * \param m A matrix expression.
+-     * \return The number of columns.
+-     */
+     template <typename VectorExprT>
+     BOOST_UBLAS_INLINE
+-    typename VectorExprT::size_type size(VectorExprT const& v)
++    typename vector_traits<VectorExprT>::size_type size(vector_expression<VectorExprT> const& ve)
+     {
+-        return v.size();
++        return ve().size();
+     }
+ 
+ 
+-    /**
+-     * \brief Return the size of the given dimension for the given expression.
+-     * \tparam Dim The dimension number (starting from 1).
+-     * \tparam ExprT An expression type.
+-     * \param e An expression.
+-     * \return The number of columns.
+-     * \return The size associated to the dimension \a Dim.
+-     */
+-    template <std::size_t Dim, typename ExprT>
++    template <std::size_t Dim, typename VectorExprT>
+     BOOST_UBLAS_INLINE
+-    typename ExprT::size_type size(ExprT const& e)
++    typename vector_traits<VectorExprT>::size_type size(vector_expression<VectorExprT> const& ve)
+     {
+-        return detail::size_by_dim_impl<Dim, typename ExprT::type_category>::apply(e);
++        return detail::size_by_dim_impl<Dim, vector_tag>::template apply(ve);
+     }
+ 
+ 
+-    /**
+-     * \brief Return the size of the given dimension tag for the given expression.
+-     * \tparam TagT The dimension tag type (e.g., tag::major).
+-     * \tparam ExprT An expression type.
+-     * \param e An expression.
+-     * \return The size associated to the dimension tag \a TagT.
+-     */
+-    template <typename TagT, typename ExprT>
++    template <std::size_t Dim, typename MatrixExprT>
+     BOOST_UBLAS_INLINE
+-    typename ExprT::size_type size(ExprT const& e)
++    typename matrix_traits<MatrixExprT>::size_type size(matrix_expression<MatrixExprT> const& me)
+     {
+-        return detail::size_by_tag_impl<TagT, typename ExprT::type_category, typename ExprT::orientation_category>::apply(e);
++        return detail::size_by_dim_impl<Dim, matrix_tag>::template apply(me);
+     }
+ 
++
++    //[FIXME]: don't work
++    ///**
++    // * \brief Return the size of the given dimension tag for the given expression.
++    // * \tparam TagT The dimension tag type (e.g., tag::major).
++    // * \tparam MatrixExprT An expression type.
++    // * \param e An expression.
++    // * \return The size associated to the dimension tag \a TagT.
++    // */
++    //template <typename TagT, typename MatrixExprT>
++    //BOOST_UBLAS_INLINE
++    //typename matrix_traits<MatrixExprT>::size_type size(matrix_expression<MatrixExprT> const& me, TagT tag=TagT())
++    //{
++    //  return detail::size_by_tag_impl<TagT, matrix_tag, typename matrix_traits<MatrixExprT>::orientation_category>::template apply(me);
++    //}
++    //[/FIXME]
++
++
++    template <typename TagT, typename MatrixExprT>
++    BOOST_UBLAS_INLINE
++    typename matrix_traits<MatrixExprT>::size_type size_by_tag(matrix_expression<MatrixExprT> const& me)
++    {
++        return detail::size_by_tag_impl<TagT, matrix_tag, typename matrix_traits<MatrixExprT>::orientation_category>::template apply(me);
++    }
++
++    //@} Definitions
++
+ }}} // Namespace boost::numeric::ublas
+ 
+ 
+--- boost-dev.orig/libs/numeric/ublas/test/size.cpp	2010-07-02 16:18:07.000000000 +0200
++++ boost-dev.new/libs/numeric/ublas/test/size.cpp	2010-07-02 16:22:37.000000000 +0200
+@@ -1,4 +1,16 @@
+-/** -*- c++ -*- \file size.hpp \brief Test the \c size operation. */
++/**
++ * \file size.cpp
++ *
++ * \brief Test the \c size operation.
++ *
++ * Copyright (c) 2010, Marco Guazzone
++ *
++ * Distributed under the Boost Software License, Version 1.0. (See
++ * accompwhiching file LICENSE_1_0.txt or copy at
++ * http://www.boost.org/LICENSE_1_0.txt)
++ *
++ * \author Marco Guazzone, marco.guazzone@gmail.com
++ */
+ 
+ #include <boost/numeric/ublas/fwd.hpp>
+ #include <boost/numeric/ublas/matrix.hpp>
+@@ -127,16 +139,22 @@
+     BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<2>(A) == A.size2()) );
+ 
+     // size<major>(A)
+-    BOOST_UBLAS_DEBUG_TRACE( "size<major>(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(A)) << " ==> " << A.size1() );
+-    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(A) == A.size1()) );
++    //BOOST_UBLAS_DEBUG_TRACE( "size<major>(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(A)) << " ==> " << A.size1() );
++    //BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(A) == A.size1()) );
++    BOOST_UBLAS_DEBUG_TRACE( "size<major>(A) = " << (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::major>(A)) << " ==> " << A.size1() );
++    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::major>(A) == A.size1()) );
+ 
+     // size<minor>(A)
+-    BOOST_UBLAS_DEBUG_TRACE( "size<minor>(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(A)) << " ==> " << A.size2() );
+-    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(A) == A.size2()) );
++    //BOOST_UBLAS_DEBUG_TRACE( "size<minor>(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(A)) << " ==> " << A.size2() );
++    //BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(A) == A.size2()) );
++    BOOST_UBLAS_DEBUG_TRACE( "size<minor>(A) = " << (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::minor>(A)) << " ==> " << A.size2() );
++    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::minor>(A) == A.size2()) );
+ 
+     // size<leading>(A)
+-    BOOST_UBLAS_DEBUG_TRACE( "size<leading>(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(A)) << " ==> " << A.size2() );
+-    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(A) == A.size2()) );
++    //BOOST_UBLAS_DEBUG_TRACE( "size<leading>(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(A)) << " ==> " << A.size2() );
++    //BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(A) == A.size2()) );
++    BOOST_UBLAS_DEBUG_TRACE( "size<leading>(A) = " << (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::leading>(A)) << " ==> " << A.size2() );
++    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::leading>(A) == A.size2()) );
+ }
+ 
+ 
+@@ -165,16 +183,22 @@
+     BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<2>(A) == A.size2()) );
+ 
+     // size<major>(A)
+-    BOOST_UBLAS_DEBUG_TRACE( "size<major>(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(A)) << " ==> " << A.size2() );
+-    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(A) == A.size2()) );
++    //BOOST_UBLAS_DEBUG_TRACE( "size<major>(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(A)) << " ==> " << A.size2() );
++    //BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(A) == A.size2()) );
++    BOOST_UBLAS_DEBUG_TRACE( "size<major>(A) = " << (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::major>(A)) << " ==> " << A.size2() );
++    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::major>(A) == A.size2()) );
+ 
+     // size<minor>(A)
+-    BOOST_UBLAS_DEBUG_TRACE( "size<minor>(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(A)) << " ==> " << A.size1() );
+-    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(A) == A.size1()) );
++    //BOOST_UBLAS_DEBUG_TRACE( "size<minor>(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(A)) << " ==> " << A.size1() );
++    //BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(A) == A.size1()) );
++    BOOST_UBLAS_DEBUG_TRACE( "size<minor>(A) = " << (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::minor>(A)) << " ==> " << A.size1() );
++    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::minor>(A) == A.size1()) );
+ 
+     // size<leading>(A)
+-    BOOST_UBLAS_DEBUG_TRACE( "size<leading>(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(A)) << " ==> " << A.size1() );
+-    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(A) == A.size1()) );
++    //BOOST_UBLAS_DEBUG_TRACE( "size<leading>(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(A)) << " ==> " << A.size1() );
++    //BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(A) == A.size1()) );
++    BOOST_UBLAS_DEBUG_TRACE( "size<leading>(A) = " << (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::leading>(A)) << " ==> " << A.size1() );
++    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::leading>(A) == A.size1()) );
+ }
+ 
+ 
+@@ -203,16 +227,22 @@
+     BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<2>(boost::numeric::ublas::trans(A)) == A.size1()) );
+ 
+     // size<major>(A') [A is row-major => A' column-major, and viceversa]
+-    BOOST_UBLAS_DEBUG_TRACE( "size<major>(A') = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(boost::numeric::ublas::trans(A))) << " ==> " << A.size1() );
+-    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(boost::numeric::ublas::trans(A)) == A.size1()) );
++    //BOOST_UBLAS_DEBUG_TRACE( "size<major>(A') = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(boost::numeric::ublas::trans(A))) << " ==> " << A.size1() );
++    //BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(boost::numeric::ublas::trans(A)) == A.size1()) );
++    BOOST_UBLAS_DEBUG_TRACE( "size<major>(A') = " << (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::major>(boost::numeric::ublas::trans(A))) << " ==> " << A.size1() );
++    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::major>(boost::numeric::ublas::trans(A)) == A.size1()) );
+ 
+     // size<minor>(A')  [A is row-major => A' column-major, and viceversa]
+-    BOOST_UBLAS_DEBUG_TRACE( "size<minor>(A') = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(boost::numeric::ublas::trans(A))) << " ==> " << A.size2() );
+-    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(boost::numeric::ublas::trans(A)) == A.size2()) );
++    //BOOST_UBLAS_DEBUG_TRACE( "size<minor>(A') = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(boost::numeric::ublas::trans(A))) << " ==> " << A.size2() );
++    //BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(boost::numeric::ublas::trans(A)) == A.size2()) );
++    BOOST_UBLAS_DEBUG_TRACE( "size<minor>(A') = " << (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::minor>(boost::numeric::ublas::trans(A))) << " ==> " << A.size2() );
++    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::minor>(boost::numeric::ublas::trans(A)) == A.size2()) );
+ 
+     // size<leading>(A')  [A row-major => A' column-major, and viceversa]
+-    BOOST_UBLAS_DEBUG_TRACE( "size<leading>(A') = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(boost::numeric::ublas::trans(A))) << " ==> " << A.size2() );
+-    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(boost::numeric::ublas::trans(A)) == A.size2()) );
++    //BOOST_UBLAS_DEBUG_TRACE( "size<leading>(A') = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(boost::numeric::ublas::trans(A))) << " ==> " << A.size2() );
++    //BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(boost::numeric::ublas::trans(A)) == A.size2()) );
++    BOOST_UBLAS_DEBUG_TRACE( "size<leading>(A') = " << (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::leading>(boost::numeric::ublas::trans(A))) << " ==> " << A.size2() );
++    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::leading>(boost::numeric::ublas::trans(A)) == A.size2()) );
+ }
+ 
+ 
+@@ -242,16 +272,22 @@
+     BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<2>(matrix_reference_type(A)) == matrix_reference_type(A).size2()) );
+ 
+     // size<major>(reference(A))
+-    BOOST_UBLAS_DEBUG_TRACE( "size<major>(reference(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(matrix_reference_type(A))) << " ==> " << matrix_reference_type(A).size1() );
+-    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(matrix_reference_type(A)) == matrix_reference_type(A).size1()) );
++    //BOOST_UBLAS_DEBUG_TRACE( "size<major>(reference(A) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(matrix_reference_type(A))) << " ==> " << matrix_reference_type(A).size1() );
++    //BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::major>(matrix_reference_type(A)) == matrix_reference_type(A).size1()) );
++    BOOST_UBLAS_DEBUG_TRACE( "size<major>(reference(A) = " << (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::major>(matrix_reference_type(A))) << " ==> " << matrix_reference_type(A).size1() );
++    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::major>(matrix_reference_type(A)) == matrix_reference_type(A).size1()) );
+ 
+     // size<minor>(reference(A))
+-    BOOST_UBLAS_DEBUG_TRACE( "size<minor>(reference(A)) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(matrix_reference_type(A))) << " ==> " << matrix_reference_type(A).size2() );
+-    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(matrix_reference_type(A)) == matrix_reference_type(A).size2()) );
++    //BOOST_UBLAS_DEBUG_TRACE( "size<minor>(reference(A)) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(matrix_reference_type(A))) << " ==> " << matrix_reference_type(A).size2() );
++    //BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::minor>(matrix_reference_type(A)) == matrix_reference_type(A).size2()) );
++    BOOST_UBLAS_DEBUG_TRACE( "size<minor>(reference(A)) = " << (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::minor>(matrix_reference_type(A))) << " ==> " << matrix_reference_type(A).size2() );
++    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::minor>(matrix_reference_type(A)) == matrix_reference_type(A).size2()) );
+ 
+     // size<leading>(reference(A))
+-    BOOST_UBLAS_DEBUG_TRACE( "size<leading>(reference(A)) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(matrix_reference_type(A))) << " ==> " << matrix_reference_type(A).size2() );
+-    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(matrix_reference_type(A)) == matrix_reference_type(A).size2()) );
++    //BOOST_UBLAS_DEBUG_TRACE( "size<leading>(reference(A)) = " << (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(matrix_reference_type(A))) << " ==> " << matrix_reference_type(A).size2() );
++    //BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size<boost::numeric::ublas::tag::leading>(matrix_reference_type(A)) == matrix_reference_type(A).size2()) );
++    BOOST_UBLAS_DEBUG_TRACE( "size<leading>(reference(A)) = " << (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::leading>(matrix_reference_type(A))) << " ==> " << matrix_reference_type(A).size2() );
++    BOOST_UBLAS_TEST_CHECK( (boost::numeric::ublas::size_by_tag<boost::numeric::ublas::tag::leading>(matrix_reference_type(A)) == matrix_reference_type(A).size2()) );
+ }
+ 
+ 

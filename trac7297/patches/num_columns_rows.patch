@@ -1,0 +1,107 @@
+diff -Naur /old/boost/numeric/ublas/operation/num_columns.hpp /new/boost/numeric/ublas/operation/num_columns.hpp
+--- /old/boost/numeric/ublas/operation/num_columns.hpp	2009-10-06 09:34:24.000000000 +0200
++++ /new/boost/numeric/ublas/operation/num_columns.hpp	2012-08-27 19:17:18.000000000 +0200
+@@ -1,11 +1,9 @@
+ /**
+- * -*- c++ -*-
+- *
+  * \file num_columns.hpp
+  *
+  * \brief The \c num_columns operation.
+  *
+- * Copyright (c) 2009, Marco Guazzone
++ * Copyright (c) 2009-2012, Marco Guazzone
+  *
+  * Distributed under the Boost Software License, Version 1.0. (See
+  * accompanying file LICENSE_1_0.txt or copy at
+@@ -20,22 +18,24 @@
+ 
+ 
+ #include <boost/numeric/ublas/detail/config.hpp>
++#include <boost/numeric/ublas/expression_types.hpp>
++#include <boost/numeric/ublas/traits.hpp>
+ 
+ 
+ namespace boost { namespace numeric { namespace ublas {
+ 
+-    /**
+-     * \brief Return the number of columns.
+-     * \tparam MatrixExprT A type which models the matrix expression concept.
+-     * \param m A matrix expression.
+-     * \return The number of columns.
+-     */
+-    template <typename MatrixExprT>
+-    BOOST_UBLAS_INLINE
+-    typename MatrixExprT::size_type num_columns(MatrixExprT const& m)
+-    {
+-        return m.size2();
+-    }
++/**
++ * \brief Return the number of columns.
++ * \tparam MatrixExprT A type which models the matrix expression concept.
++ * \param m A matrix expression.
++ * \return The number of columns.
++ */
++template <typename MatrixExprT>
++BOOST_UBLAS_INLINE
++typename matrix_traits<MatrixExprT>::size_type num_columns(matrix_expression<MatrixExprT> const& me)
++{
++	return me().size2();
++}
+ 
+ }}} // Namespace boost::numeric::ublas
+ 
+
+diff -Naur /old/boost/numeric/ublas/operation/num_rows.hpp /new/boost/numeric/ublas/operation/num_rows.hpp
+--- /old/boost/numeric/ublas/operation/num_rows.hpp	2009-10-06 09:34:24.000000000 +0200
++++ /new/boost/numeric/ublas/operation/num_rows.hpp	2012-08-27 19:17:24.000000000 +0200
+@@ -1,11 +1,9 @@
+ /**
+- * -*- c++ -*-
+- *
+  * \file num_rows.hpp
+  *
+  * \brief The \c num_rows operation.
+  *
+- * Copyright (c) 2009, Marco Guazzone
++ * Copyright (c) 2009-2012, Marco Guazzone
+  *
+  * Distributed under the Boost Software License, Version 1.0. (See
+  * accompanying file LICENSE_1_0.txt or copy at
+@@ -19,22 +17,24 @@
+ 
+ 
+ #include <boost/numeric/ublas/detail/config.hpp>
++#include <boost/numeric/ublas/expression_types.hpp>
++#include <boost/numeric/ublas/traits.hpp>
+ 
+ 
+ namespace boost { namespace numeric { namespace ublas {
+ 
+-    /**
+-     * \brief Return the number of rows.
+-     * \tparam MatrixExprT A type which models the matrix expression concept.
+-     * \param m A matrix expression.
+-     * \return The number of rows.
+-     */
+-    template <typename MatrixExprT>
+-    BOOST_UBLAS_INLINE
+-    typename MatrixExprT::size_type num_rows(MatrixExprT const& m)
+-    {
+-        return m.size1();
+-    }
++/**
++ * \brief Return the number of rows.
++ * \tparam MatrixExprT A type which models the matrix expression concept.
++ * \param m A matrix expression.
++ * \return The number of rows.
++ */
++template <typename MatrixExprT>
++BOOST_UBLAS_INLINE
++typename matrix_traits<MatrixExprT>::size_type num_rows(matrix_expression<MatrixExprT> const& me)
++{
++	return me().size1();
++}
+ 
+ }}} // Namespace boost::numeric::ublas
+ 

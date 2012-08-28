@@ -1,0 +1,44 @@
+diff -Naur /old/boost/numeric/ublas/detail/config.hpp /new/boost/numeric/ublas/detail/config.hpp
+--- /old/boost/numeric/ublas/detail/config.hpp  2012-08-27 16:30:34.000000000 +0200
++++ /new/boost/numeric/ublas/detail/config.hpp  2012-08-27 16:33:07.000000000 +0200
+@@ -23,6 +23,7 @@
+ #include <boost/noncopyable.hpp>
+ #include <boost/mpl/if.hpp>
+ #include <boost/mpl/and.hpp>
++#include <boost/type_traits/is_integral.hpp>
+ #include <boost/type_traits/is_same.hpp>
+ #include <boost/type_traits/is_convertible.hpp>
+ #include <boost/type_traits/is_const.hpp>
+@@ -235,7 +236,7 @@
+ #define BOOST_UBLAS_TYPE_CHECK_EPSILON (type_traits<real_type>::type_sqrt (std::numeric_limits<real_type>::epsilon ()))
+ #endif
+ #ifndef BOOST_UBLAS_TYPE_CHECK_MIN
+-#define BOOST_UBLAS_TYPE_CHECK_MIN (type_traits<real_type>::type_sqrt ( (std::numeric_limits<real_type>::min) ()))
++#define BOOST_UBLAS_TYPE_CHECK_MIN (type_traits<real_type>::type_sqrt ( ::boost::is_integral<real_type>::value ? 0 : ((std::numeric_limits<real_type>::min) ())))
+ #endif
+ 
+ 
+diff -Naur /old/boost/numeric/ublas/detail/matrix_assign.hpp /new/boost/numeric/ublas/detail/matrix_assign.hpp
+--- /old/boost/numeric/ublas/detail/matrix_assign.hpp	2010-08-17 10:47:17.000000000 +0200
++++ /new/boost/numeric/ublas/detail/matrix_assign.hpp	2010-08-17 10:47:52.000000000 +0200
+@@ -30,7 +30,7 @@
+     template<class E1, class E2, class S>
+     BOOST_UBLAS_INLINE
+     bool equals (const matrix_expression<E1> &e1, const matrix_expression<E2> &e2, S epsilon, S min_norm) {
+-        return norm_inf (e1 - e2) < epsilon *
++        return norm_inf (e1 - e2) <= epsilon *
+                std::max<S> (std::max<S> (norm_inf (e1), norm_inf (e2)), min_norm);
+     }
+ 
+diff -Naur /old/boost/numeric/ublas/detail/vector_assign.hpp /new/boost/numeric/ublas/detail/vector_assign.hpp
+--- /old/boost/numeric/ublas/detail/vector_assign.hpp	2010-08-17 10:47:29.000000000 +0200
++++ /new/boost/numeric/ublas/detail/vector_assign.hpp	2010-08-17 10:48:01.000000000 +0200
+@@ -30,7 +30,7 @@
+     template<class E1, class E2, class S>
+     BOOST_UBLAS_INLINE
+     bool equals (const vector_expression<E1> &e1, const vector_expression<E2> &e2, S epsilon, S min_norm) {
+-        return norm_inf (e1 - e2) < epsilon *
++        return norm_inf (e1 - e2) <= epsilon *
+                std::max<S> (std::max<S> (norm_inf (e1), norm_inf (e2)), min_norm);
+     }
+ 

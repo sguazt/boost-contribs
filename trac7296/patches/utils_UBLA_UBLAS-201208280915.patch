@@ -1,0 +1,25 @@
+diff -Naur /old/libs/numeric/ublas/test/utils.hpp /new/libs/numeric/ublas/test/utils.hpp
+--- /old/libs/numeric/ublas/test/utils.hpp	2012-08-28 09:20:17.000000000 +0200
++++ /new/libs/numeric/ublas/test/utils.hpp	2012-08-28 09:14:32.000000000 +0200
+@@ -118,17 +118,17 @@
+ 
+ 
+ /// Check for the equality of \a x against \a y.
+-#define BOOST_UBLA_TEST_CHECK_EQ(x,y)	/* [BOOST_UBLA_TEST_CHECK_EQUAL] */ \
++#define BOOST_UBLAS_TEST_CHECK_EQ(x,y)	/* [BOOST_UBLAS_TEST_CHECK_EQUAL] */ \
+ 										if (!(BOOST_UBLAS_TEST_PARAM_EXPAND_(x) == BOOST_UBLAS_TEST_PARAM_EXPAND_(y))) \
+ 										{ \
+ 											BOOST_UBLAS_TEST_ERROR( "Failed assertion: (" << BOOST_UBLAS_TEST_STRINGIFY_(x) << " == " << BOOST_UBLAS_TEST_STRINGIFY_(y) << ")" ); \
+ 											++test_fails__; \
+ 										} \
+-										/* [/BOOST_UBLA_TEST_CHECK_EQUAL] */
++										/* [/BOOST_UBLAS_TEST_CHECK_EQUAL] */
+ 
+ 
+-/// Alias for macro \c BOOST_UBLA_TEST_CHECK_EQ (for backward compatibility).
+-#define BOOST_UBLA_TEST_CHECK_EQUAL(x,y) BOOST_UBLA_TEST_CHECK_EQ(x,y)
++/// Alias for macro \c BOOST_UBLAS_TEST_CHECK_EQ (for backward compatibility).
++#define BOOST_UBLAS_TEST_CHECK_EQUAL(x,y) BOOST_UBLAS_TEST_CHECK_EQ(x,y)
+ 
+ 
+ /// Check that \a x and \a y are close with respect to a given precision.

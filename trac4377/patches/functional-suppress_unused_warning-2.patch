@@ -1,0 +1,12 @@
+diff -Naur old/boost/numeric/ublas/functional.hpp new/boost/numeric/ublas/functional.hpp
+--- old/boost/numeric/ublas/functional.hpp	2010-07-23 14:36:26.000000000 +0200
++++ new/boost/numeric/ublas/functional.hpp	2010-07-23 14:41:17.000000000 +0200
+@@ -1865,7 +1865,7 @@
+         // return nearest valid index in column j
+         static
+         BOOST_UBLAS_INLINE
+-        size_type restrict1 (size_type i, size_type j, size_type size1, size_type size2) {
++        size_type restrict1 (size_type i, size_type j, size_type size1, size_type /* size2 */) {
+             return (std::max)(j, (std::min) (size1, i));
+         }
+         // return nearest valid index in row i
