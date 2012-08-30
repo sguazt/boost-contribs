@@ -56,6 +56,7 @@
 #include <boost/numeric/ublas/traits.hpp>
 #include <cmath>
 #include <complex>
+#include <cstddef>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
@@ -143,19 +144,25 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 }}}}}} // Namespace boost::numeric::ublas::test::detail::<unnamed>
 
 
-/// Expand its argument.
+/// Expand its argument \a x.
 #define BOOST_UBLAS_TEST_EXPAND_(x) x
 
 
-/// Transform its argument into a string.
+/// Expand its argument \a x inside parenthesis.
+#define BOOST_UBLAS_TEST_EXPANDP_(x) (x)
+
+
+/// Transform its argument \a x into a string.
 #define BOOST_UBLAS_TEST_STRINGIFY_(x) #x
 
 
-/// Concatenate its two \e string arguments.
+/// Concatenate its two \e string arguments \a x and \a y.
 #define BOOST_UBLAS_TEST_JOIN_(x,y) x ## y
 
 
 /// Output the message \a x if in debug-mode; otherwise output nothing.
+/// Note: we don't use macro expansion inside parenthesis to let \a m be an
+///  expression of the form <code>a &lt;&lt; b</code>.
 #ifndef NDEBUG
 # 	define BOOST_UBLAS_DEBUG_TRACE(x) ::std::cerr << "[Debug>> " << BOOST_UBLAS_TEST_EXPAND_(x) << ::std::endl
 #else
@@ -163,20 +170,20 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 #endif // NDEBUG
 
 
-/// Define the name of the entire test suite.
-#define BOOST_UBLAS_TEST_SUITE(m) ::std::cerr << "--- Test Suite: " << m << " ---" << ::std::endl;
+/// Define the name \a m of the entire test suite.
+#define BOOST_UBLAS_TEST_SUITE(m) ::std::cerr << "--- Test Suite: " << BOOST_UBLAS_TEST_EXPAND_(m) << " ---" << ::std::endl;
 
 
 /// Define the beginning of a test suite.
 #define BOOST_UBLAS_TEST_BEGIN() 	/* [BOOST_UBLAS_TEST_BEGIN] */ \
 									{ \
 										/* Begin of Test Suite */ \
-										unsigned int test_fails__(0) \
+										::std::size_t test_fails__(0) \
 									/* [/BOOST_UBLAS_TEST_BEGIN] */
 
 
 /// Define a test case \a x inside the current test suite.
-#define BOOST_UBLAS_TEST_DEF(x) static void BOOST_UBLAS_TEST_EXPAND_(x)(unsigned int& test_fails__)
+#define BOOST_UBLAS_TEST_DEF(x) static void BOOST_UBLAS_TEST_EXPAND_(x)(::std::size_t& test_fails__)
 
 
 /// Call the test case \a x.
@@ -212,12 +219,14 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 
 
 /// Output the message \a m.
+/// Note: we don't use macro expansion inside parenthesis to let \a m be an
+///  expression of the form <code>a &lt;&lt; b</code>.
 #define BOOST_UBLAS_TEST_TRACE(m) ::std::cerr << "[Info>> " << BOOST_UBLAS_TEST_EXPAND_(m) << ::std::endl
 
 
 /// Check the truth of assertion \a x.
 #define BOOST_UBLAS_TEST_CHECK(x)	/* [BOOST_UBLAS_TEST_CHECK] */ \
-									if (!(x)) \
+									if (!BOOST_UBLAS_TEST_EXPANDP_(x)) \
 									{ \
 										BOOST_UBLAS_TEST_ERROR( "Failed assertion: " << BOOST_UBLAS_TEST_STRINGIFY_(x) ); \
 										++test_fails__; \
@@ -227,7 +236,7 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 
 /// Check for the equality of \a x against \a y.
 #define BOOST_UBLAS_TEST_CHECK_EQ(x,y)	/* [BOOST_UBLAS_TEST_CHECK_EQUAL] */ \
-										if (!(BOOST_UBLAS_TEST_EXPAND_(x) == BOOST_UBLAS_TEST_EXPAND_(y))) \
+										if (!(BOOST_UBLAS_TEST_EXPANDP_(x) == BOOST_UBLAS_TEST_EXPANDP_(y))) \
 										{ \
 											BOOST_UBLAS_TEST_ERROR( "Failed assertion: (" << BOOST_UBLAS_TEST_STRINGIFY_(x) << " == " << BOOST_UBLAS_TEST_STRINGIFY_(y) << ")" ); \
 											++test_fails__; \
@@ -239,28 +248,28 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 #define BOOST_UBLAS_TEST_CHECK_EQUAL(x,y) BOOST_UBLAS_TEST_CHECK_EQ(x,y)
 
 
-/// Check that \a x and \a y are close with respect to a given precision.
-#define BOOST_UBLAS_TEST_CHECK_CLOSE(x,y,e)	/* [BOOST_UBLAS_TEST_CHECK_PRECISION] */ \
+/// Check that \a x and \a y are close with respect to a given precision \a e.
+#define BOOST_UBLAS_TEST_CHECK_CLOSE(x,y,e)	/* [BOOST_UBLAS_TEST_CHECK_CLOSE] */ \
 											if (!::boost::numeric::ublas::test::detail::close_to(BOOST_UBLAS_TEST_EXPAND_(x), BOOST_UBLAS_TEST_EXPAND_(y), BOOST_UBLAS_TEST_EXPAND_(e))) \
 											{ \
-												BOOST_UBLAS_TEST_ERROR( "Failed assertion: abs(" << BOOST_UBLAS_TEST_STRINGIFY_(x) << "-" << BOOST_UBLAS_TEST_STRINGIFY_(y) << ") <= " << BOOST_UBLAS_TEST_STRINGIFY_(e) << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x) << " == " << BOOST_UBLAS_TEST_EXPAND_(x) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y) << " == " << BOOST_UBLAS_TEST_EXPAND_(y) << " and " << BOOST_UBLAS_TEST_STRINGIFY_(e) << " == " << BOOST_UBLAS_TEST_EXPAND_(e) << "]" ); \
+												BOOST_UBLAS_TEST_ERROR( "Failed assertion: abs(" << BOOST_UBLAS_TEST_STRINGIFY_(x) << "-" << BOOST_UBLAS_TEST_STRINGIFY_(y) << ") <= " << BOOST_UBLAS_TEST_STRINGIFY_(e) << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x) << " == " << BOOST_UBLAS_TEST_EXPANDP_(x) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y) << " == " << BOOST_UBLAS_TEST_EXPANDP_(y) << " and " << BOOST_UBLAS_TEST_STRINGIFY_(e) << " == " << BOOST_UBLAS_TEST_EXPANDP_(e) << "]" ); \
 												++test_fails__; \
 											} \
-											/* [/BOOST_UBLAS_TEST_CHECK_PRECISION] */
+											/* [/BOOST_UBLAS_TEST_CHECK_CLOSE] */
 
 
 /// Alias for macro \c BOOST_UBLAS_TEST_CHECK_CLOSE (for backward compatibility),
 #define BOOST_UBLAS_TEST_CHECK_PRECISION(x,y,e) BOOST_UBLAS_TEST_CHECK_CLOSE(x,y,e)
 
 
-/// Check that \a x is close to \a y with respect to a given relative precision.
-#define BOOST_UBLAS_TEST_CHECK_REL_CLOSE(x,y,e)	/* [BOOST_UBLAS_TEST_CHECK_REL_PRECISION] */ \
+/// Check that \a x is close to \a y with respect to a given relative precision \a e.
+#define BOOST_UBLAS_TEST_CHECK_REL_CLOSE(x,y,e)	/* [BOOST_UBLAS_TEST_CHECK_REL_CLOSE] */ \
 												if (!::boost::numeric::ublas::test::detail::rel_close_to(BOOST_UBLAS_TEST_EXPAND_(x), BOOST_UBLAS_TEST_EXPAND_(y), BOOST_UBLAS_TEST_EXPAND_(e))) \
 												{ \
-													BOOST_UBLAS_TEST_ERROR( "Failed assertion: abs((" << BOOST_UBLAS_TEST_STRINGIFY_(x) << "-" << BOOST_UBLAS_TEST_STRINGIFY_(y) << ")/" << BOOST_UBLAS_TEST_STRINGIFY_(y) << ") <= " << BOOST_UBLAS_TEST_STRINGIFY_(e)  << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x) << " == " << BOOST_UBLAS_TEST_EXPAND_(x) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y) << " == " << BOOST_UBLAS_TEST_EXPAND_(y) << " and " << BOOST_UBLAS_TEST_STRINGIFY_(e) << " == " << BOOST_UBLAS_TEST_EXPAND_(e) << "]" ); \
+													BOOST_UBLAS_TEST_ERROR( "Failed assertion: abs((" << BOOST_UBLAS_TEST_STRINGIFY_(x) << "-" << BOOST_UBLAS_TEST_STRINGIFY_(y) << ")/" << BOOST_UBLAS_TEST_STRINGIFY_(y) << ") <= " << BOOST_UBLAS_TEST_STRINGIFY_(e)  << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x) << " == " << BOOST_UBLAS_TEST_EXPANDP_(x) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y) << " == " << BOOST_UBLAS_TEST_EXPANDP_(y) << " and " << BOOST_UBLAS_TEST_STRINGIFY_(e) << " == " << BOOST_UBLAS_TEST_EXPANDP_(e) << "]" ); \
 													++test_fails__; \
 												} \
-												/* [/BOOST_UBLAS_TEST_CHECK_REL_PRECISION] */
+												/* [/BOOST_UBLAS_TEST_CHECK_REL_CLOSE] */
 
 
 /// Alias for macro \c BOOST_UBLAS_TEST_CHECK_REL_CLOSE (for backward compatibility),
@@ -269,14 +278,14 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 
 /// Check that elements of \a x and \a y are equal.
 #define BOOST_UBLAS_TEST_CHECK_VECTOR_EQ(x,y,n)	/* [BOOST_UBLAS_TEST_CHECK_VECTOR_EQ] */ \
-												if (BOOST_UBLAS_TEST_EXPAND_(n) > 0) \
+												if (BOOST_UBLAS_TEST_EXPANDP_(n) > 0) \
 												{ \
-													unsigned long n__ = BOOST_UBLAS_TEST_EXPAND_(n); \
-													for (unsigned long i__ = n__; i__ > 0; --i__) \
+													::std::size_t n__ = BOOST_UBLAS_TEST_EXPAND_(n); \
+													for (::std::size_t i__ = n__; i__ > 0; --i__) \
 													{ \
-														if (!(BOOST_UBLAS_TEST_EXPAND_(x)[n__-i__]==BOOST_UBLAS_TEST_EXPAND_(y)[n__-i__])) \
+														if (!(BOOST_UBLAS_TEST_EXPANDP_(x)[n__-i__]==BOOST_UBLAS_TEST_EXPANDP_(y)[n__-i__])) \
 														{ \
-															BOOST_UBLAS_TEST_ERROR( "Failed assertion: (" << BOOST_UBLAS_TEST_STRINGIFY_(x[i__]) << "==" << BOOST_UBLAS_TEST_STRINGIFY_(y[i__]) << ")" << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x[i__]) << " == " << BOOST_UBLAS_TEST_EXPAND_(x)[n__-i__] << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y[i__]) << " == " << BOOST_UBLAS_TEST_EXPAND_(y)[n__-i__] << ", " << BOOST_UBLAS_TEST_STRINGIFY_(i__) << " == " << i__ << " and " << BOOST_UBLAS_TEST_STRINGIFY_(n) << " == " << n__ << "]" ); \
+															BOOST_UBLAS_TEST_ERROR( "Failed assertion: (" << BOOST_UBLAS_TEST_STRINGIFY_(x[i__]) << "==" << BOOST_UBLAS_TEST_STRINGIFY_(y[i__]) << ")" << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x[i__]) << " == " << BOOST_UBLAS_TEST_EXPANDP_(x)[n__-i__] << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y[i__]) << " == " << BOOST_UBLAS_TEST_EXPANDP_(y)[n__-i__] << ", " << BOOST_UBLAS_TEST_STRINGIFY_(i__) << " == " << i__ << " and " << BOOST_UBLAS_TEST_STRINGIFY_(n) << " == " << n__ << "]" ); \
 															++test_fails__; \
 														} \
 													} \
@@ -284,16 +293,16 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 												/* [/BOOST_UBLAS_TEST_CHECK_VECTOR_EQ] */
 
 
-/// Check that elements of \a x and \a y are close with respect to a given precision.
+/// Check that elements of \a x and \a y are close with respect to a given precision \a e.
 #define BOOST_UBLAS_TEST_CHECK_VECTOR_CLOSE(x,y,n,e)	/* [BOOST_UBLAS_TEST_CHECK_VECTOR_CLOSE] */ \
-														if (BOOST_UBLAS_TEST_EXPAND_(n) > 0) \
+														if (BOOST_UBLAS_TEST_EXPANDP_(n) > 0) \
 														{ \
-															unsigned long n__ = BOOST_UBLAS_TEST_EXPAND_(n); \
-															for (unsigned long i__ = n__; i__ > 0; --i__) \
+															::std::size_t n__ = BOOST_UBLAS_TEST_EXPAND_(n); \
+															for (::std::size_t i__ = n__; i__ > 0; --i__) \
 															{ \
-																if (!::boost::numeric::ublas::test::detail::close_to(BOOST_UBLAS_TEST_EXPAND_(x)[n__-i__], BOOST_UBLAS_TEST_EXPAND_(y)[n__-i__], BOOST_UBLAS_TEST_EXPAND_(e))) \
+																if (!::boost::numeric::ublas::test::detail::close_to(BOOST_UBLAS_TEST_EXPANDP_(x)[n__-i__], BOOST_UBLAS_TEST_EXPANDP_(y)[n__-i__], BOOST_UBLAS_TEST_EXPANDP_(e))) \
 																{ \
-																	BOOST_UBLAS_TEST_ERROR( "Failed assertion: abs((" << BOOST_UBLAS_TEST_STRINGIFY_(x[i__]) << "-" << BOOST_UBLAS_TEST_STRINGIFY_(y[i__]) << ") <= " << BOOST_UBLAS_TEST_STRINGIFY_(e)  << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x[i__]) << " == " << BOOST_UBLAS_TEST_EXPAND_(x)[n__-i__] << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y[i__]) << " == " << BOOST_UBLAS_TEST_EXPAND_(y)[n__-i__] << ", " << BOOST_UBLAS_TEST_STRINGIFY_(i__) << " == " << i__ << " and " << BOOST_UBLAS_TEST_STRINGIFY_(n) << " == " << n__ << "]" ); \
+																	BOOST_UBLAS_TEST_ERROR( "Failed assertion: abs((" << BOOST_UBLAS_TEST_STRINGIFY_(x[i__]) << "-" << BOOST_UBLAS_TEST_STRINGIFY_(y[i__]) << ") <= " << BOOST_UBLAS_TEST_STRINGIFY_(e)  << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x[i__]) << " == " << BOOST_UBLAS_TEST_EXPANDP_(x)[n__-i__] << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y[i__]) << " == " << BOOST_UBLAS_TEST_EXPANDP_(y)[n__-i__] << ", " << BOOST_UBLAS_TEST_STRINGIFY_(i__) << " == " << i__ << " and " << BOOST_UBLAS_TEST_STRINGIFY_(n) << " == " << n__ << "]" ); \
 																	++test_fails__; \
 																} \
 															} \
@@ -301,34 +310,69 @@ bool rel_close_to(::std::complex<T1> const& x, ::std::complex<T2> const& y, T3 t
 														/* [/BOOST_UBLAS_TEST_CHECK_VECTOR_CLOSE] */
 
 
+/// Check that elements of \a x and \a y are close with respect to a given relative precision \a e.
+#define BOOST_UBLAS_TEST_CHECK_VECTOR_REL_CLOSE(x,y,n,e)	/* [BOOST_UBLAS_TEST_CHECK_VECTOR_REL_CLOSE] */ \
+														if (BOOST_UBLAS_TEST_EXPANDP_(n) > 0) \
+														{ \
+															::std::size_t n__ = BOOST_UBLAS_TEST_EXPAND_(n); \
+															for (::std::size_t i__ = n__; i__ > 0; --i__) \
+															{ \
+																if (!::boost::numeric::ublas::test::detail::rel_close_to(BOOST_UBLAS_TEST_EXPANDP_(x)[n__-i__], BOOST_UBLAS_TEST_EXPANDP_(y)[n__-i__], BOOST_UBLAS_TEST_EXPANDP_(e))) \
+																{ \
+																	BOOST_UBLAS_TEST_ERROR( "Failed assertion: abs((" << BOOST_UBLAS_TEST_STRINGIFY_(x[i__]) << "-" << BOOST_UBLAS_TEST_STRINGIFY_(y[i__]) << ") <= " << BOOST_UBLAS_TEST_STRINGIFY_(e)  << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x[i__]) << " == " << BOOST_UBLAS_TEST_EXPANDP_(x)[n__-i__] << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y[i__]) << " == " << BOOST_UBLAS_TEST_EXPANDP_(y)[n__-i__] << ", " << BOOST_UBLAS_TEST_STRINGIFY_(i__) << " == " << i__ << " and " << BOOST_UBLAS_TEST_STRINGIFY_(n) << " == " << n__ << "]" ); \
+																	++test_fails__; \
+																} \
+															} \
+														} \
+														/* [/BOOST_UBLAS_TEST_CHECK_VECTOR_REL_CLOSE] */
+
+
 /// Check that elements of matrices \a x and \a y are equal.
 #define BOOST_UBLAS_TEST_CHECK_MATRIX_EQ(x,y,nr,nc)	/* [BOOST_UBLAS_TEST_CHECK_MATRIX_EQ] */ \
-													for (unsigned long i__ = 0; i__ < BOOST_UBLAS_TEST_EXPAND_(nr); ++i__) \
+													for (::std::size_t i__ = 0; i__ < BOOST_UBLAS_TEST_EXPANDP_(nr); ++i__) \
 													{ \
-														for (unsigned long j__ = 0; j__ < BOOST_UBLAS_TEST_EXPAND_(nc); ++j__) \
+														for (::std::size_t j__ = 0; j__ < BOOST_UBLAS_TEST_EXPANDP_(nc); ++j__) \
 														{ \
-															if (!(BOOST_UBLAS_TEST_EXPAND_(x)(i__,j__)==BOOST_UBLAS_TEST_EXPAND_(y)(i__,j__))) \
+															if (!(BOOST_UBLAS_TEST_EXPANDP_(x)(i__,j__)==BOOST_UBLAS_TEST_EXPANDP_(y)(i__,j__))) \
 															{ \
-																BOOST_UBLAS_TEST_ERROR( "Failed assertion: (" << BOOST_UBLAS_TEST_STRINGIFY_(x(i__,j__)) << " == " << BOOST_UBLAS_TEST_STRINGIFY_(y(i__,j__)) << ") [with " << BOOST_UBLAS_TEST_STRINGIFY_(x(i__,j__)) << " == " << BOOST_UBLAS_TEST_EXPAND_(x)(i__,j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y(i__,j__)) << " == " << BOOST_UBLAS_TEST_EXPAND_(y)(i__,j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(i__) << " == " << i__ << ", " << BOOST_UBLAS_TEST_STRINGIFY_(j__) << " == " << BOOST_UBLAS_TEST_EXPAND_(j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(nr) << " == " << BOOST_UBLAS_TEST_EXPAND_(nr) << " and " << BOOST_UBLAS_TEST_STRINGIFY_(nc) << " == " << BOOST_UBLAS_TEST_EXPAND_(nc) << "]" ); \
+																BOOST_UBLAS_TEST_ERROR( "Failed assertion: (" << BOOST_UBLAS_TEST_STRINGIFY_(x(i__,j__)) << " == " << BOOST_UBLAS_TEST_STRINGIFY_(y(i__,j__)) << ") [with " << BOOST_UBLAS_TEST_STRINGIFY_(x(i__,j__)) << " == " << BOOST_UBLAS_TEST_EXPANDP_(x)(i__,j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y(i__,j__)) << " == " << BOOST_UBLAS_TEST_EXPANDP_(y)(i__,j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(i__) << " == " << i__ << ", " << BOOST_UBLAS_TEST_STRINGIFY_(j__) << " == " << BOOST_UBLAS_TEST_EXPANDP_(j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(nr) << " == " << BOOST_UBLAS_TEST_EXPANDP_(nr) << " and " << BOOST_UBLAS_TEST_STRINGIFY_(nc) << " == " << BOOST_UBLAS_TEST_EXPANDP_(nc) << "]" ); \
+																++test_fails__; \
 															} \
 														} \
 													} \
 													/* [/BOOST_UBLAS_TEST_CHECK_MATRIX_EQ] */
 
 
-/// Check that elements of matrices \a x and \a y are close with respect to a given precision.
+/// Check that elements of matrices \a x and \a y are close with respect to a given precision \a e.
 #define BOOST_UBLAS_TEST_CHECK_MATRIX_CLOSE(x,y,nr,nc,e)	/* [BOOST_UBLAS_TEST_CHECK_MATRIX_CLOSE] */ \
-															for (unsigned long i__ = 0; i__ < BOOST_UBLAS_TEST_EXPAND_(nr); ++i__) \
+															for (::std::size_t i__ = 0; i__ < BOOST_UBLAS_TEST_EXPANDP_(nr); ++i__) \
 															{ \
-																for (unsigned long j__ = 0; j__ < BOOST_UBLAS_TEST_EXPAND_(nc); ++j__) \
+																for (::std::size_t j__ = 0; j__ < BOOST_UBLAS_TEST_EXPANDP_(nc); ++j__) \
 																{ \
-																	if (!::boost::numeric::ublas::test::detail::close_to(BOOST_UBLAS_TEST_EXPAND_(x)(i__,j__), BOOST_UBLAS_TEST_EXPAND_(y)(i__,j__), BOOST_UBLAS_TEST_EXPAND_(e))) \
+																	if (!::boost::numeric::ublas::test::detail::close_to(BOOST_UBLAS_TEST_EXPANDP_(x)(i__,j__), BOOST_UBLAS_TEST_EXPANDP_(y)(i__,j__), BOOST_UBLAS_TEST_EXPANDP_(e))) \
 																	{ \
-																		BOOST_UBLAS_TEST_ERROR( "Failed assertion: abs((" << BOOST_UBLAS_TEST_STRINGIFY_(x(i__,j__)) << "-" << BOOST_UBLAS_TEST_STRINGIFY_(y(i__,j__)) << ") <= " << BOOST_UBLAS_TEST_STRINGIFY_(e)  << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x(i__,j__)) << " == " << BOOST_UBLAS_TEST_EXPAND_(x)(i__,j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y(i__,j__)) << " == " << BOOST_UBLAS_TEST_EXPAND_(y)(i__,j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(i__) << " == " << i__ << ", " << BOOST_UBLAS_TEST_STRINGIFY_(j__) << " == " << BOOST_UBLAS_TEST_EXPAND_(j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(nr) << " == " << BOOST_UBLAS_TEST_EXPAND_(nr) << " and " << BOOST_UBLAS_TEST_STRINGIFY_(nc) << " == " << BOOST_UBLAS_TEST_EXPAND_(nc) << "]" ); \
+																		BOOST_UBLAS_TEST_ERROR( "Failed assertion: abs((" << BOOST_UBLAS_TEST_STRINGIFY_(x(i__,j__)) << "-" << BOOST_UBLAS_TEST_STRINGIFY_(y(i__,j__)) << ") <= " << BOOST_UBLAS_TEST_STRINGIFY_(e)  << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x(i__,j__)) << " == " << BOOST_UBLAS_TEST_EXPANDP_(x)(i__,j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y(i__,j__)) << " == " << BOOST_UBLAS_TEST_EXPANDP_(y)(i__,j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(i__) << " == " << i__ << ", " << BOOST_UBLAS_TEST_STRINGIFY_(j__) << " == " << BOOST_UBLAS_TEST_EXPANDP_(j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(nr) << " == " << BOOST_UBLAS_TEST_EXPANDP_(nr) << " and " << BOOST_UBLAS_TEST_STRINGIFY_(nc) << " == " << BOOST_UBLAS_TEST_EXPANDP_(nc) << "]" ); \
+																		++test_fails__; \
 																	} \
 																} \
 															} \
 															/* [/BOOST_UBLAS_TEST_CHECK_MATRIX_CLOSE] */
+
+
+/// Check that elements of matrices \a x and \a y are close with respect to a given relative precision \a e.
+#define BOOST_UBLAS_TEST_CHECK_MATRIX_REL_CLOSE(x,y,nr,nc,e)	/* [BOOST_UBLAS_TEST_CHECK_MATRIX_REL_CLOSE] */ \
+																for (::std::size_t i__ = 0; i__ < BOOST_UBLAS_TEST_EXPANDP_(nr); ++i__) \
+																{ \
+																	for (::std::size_t j__ = 0; j__ < BOOST_UBLAS_TEST_EXPANDP_(nc); ++j__) \
+																	{ \
+																		if (!::boost::numeric::ublas::test::detail::rel_close_to(BOOST_UBLAS_TEST_EXPANDP_(x)(i__,j__), BOOST_UBLAS_TEST_EXPANDP_(y)(i__,j__), BOOST_UBLAS_TEST_EXPANDP_(e))) \
+																		{ \
+																			BOOST_UBLAS_TEST_ERROR( "Failed assertion: abs((" << BOOST_UBLAS_TEST_STRINGIFY_(x(i__,j__)) << "-" << BOOST_UBLAS_TEST_STRINGIFY_(y(i__,j__)) << ") <= " << BOOST_UBLAS_TEST_STRINGIFY_(e)  << " [with " << BOOST_UBLAS_TEST_STRINGIFY_(x(i__,j__)) << " == " << BOOST_UBLAS_TEST_EXPANDP_(x)(i__,j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(y(i__,j__)) << " == " << BOOST_UBLAS_TEST_EXPANDP_(y)(i__,j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(i__) << " == " << i__ << ", " << BOOST_UBLAS_TEST_STRINGIFY_(j__) << " == " << BOOST_UBLAS_TEST_EXPANDP_(j__) << ", " << BOOST_UBLAS_TEST_STRINGIFY_(nr) << " == " << BOOST_UBLAS_TEST_EXPANDP_(nr) << " and " << BOOST_UBLAS_TEST_STRINGIFY_(nc) << " == " << BOOST_UBLAS_TEST_EXPANDP_(nc) << "]" ); \
+																			++test_fails__; \
+																		} \
+																	} \
+																} \
+																/* [/BOOST_UBLAS_TEST_CHECK_MATRIX_REL_CLOSE] */
 
 
 ///< Output the error message \a x.
